@@ -29,3 +29,15 @@ class ModelMNIST(nn.Module):
         x = self.fc2(x)
         output = F.log_softmax(x, dim=1)
         return output
+    
+def getModel(pb, _model):
+    ser_params = pb.SerializeToString()
+    params = deserialize_model_params(ser_params)
+    
+    _model_dict = _model.state_dict()
+    
+    for index, key in enumerate(_model_dict):
+        _model_dict[key] = params[index]
+    _model.load_state_dict(_model_dict)
+    
+    return _model
