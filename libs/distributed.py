@@ -19,7 +19,6 @@ class Distributed:
     def __init__(self, clients, brokers_ip, schema_ip, wait_to_consume):
         self.broker_ip = brokers_ip
         self.schema_ip = schema_ip
-        print(self.broker_ip, self.schema_ip)
         self.group_prefix = "group-"
         self.client_prefix = "client-"        
         self.clients = clients[:]

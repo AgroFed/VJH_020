@@ -9,14 +9,14 @@ from torch import optim
 def client_update(_model, data_loader, learning_rate, decay, epochs, device):
     model = copy.deepcopy(_model)
     loss = {}
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=decay)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)#, weight_decay=decay)
     model.train()
     for epoch in range(epochs):
         for batch_idx, (data, target) in enumerate(data_loader):
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             output = model(data)
-            _loss = F.nll_loss(output, target)
+            _loss = F.cross_entropy(output, target)
             _loss.backward()
             optimizer.step()
 
@@ -35,7 +35,7 @@ def evaluate(model, test_loader, device, flip_labels = None):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_output["test_loss"] += F.nll_loss(output, target, reduction='sum').item()
+            test_output["test_loss"] += F.cross_entropy(output, target, reduction='sum').item()
             pred = output.argmax(dim=1, keepdim=True)
             if flip_labels is not None and len(flip_labels) > 0:
                 audit_attack(target, pred, flip_labels, test_output["attack"])

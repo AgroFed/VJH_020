@@ -1,4 +1,6 @@
-data
+!data/
+data/*
+!data/lemon/
 out
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -59,7 +59,7 @@ class ProtobufProducer():
         except ValueError:
             print("Invalid input, discarding record...")
         except Exception as se:
-            print("Exception raised")
+            print("Exception {} occured".format(se))
 
         print("Flushing records...")
         self.protobuf_producer.flush()
