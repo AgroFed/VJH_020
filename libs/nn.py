@@ -41,3 +41,21 @@ def getModel(pb, _model):
     _model.load_state_dict(_model_dict)
     
     return _model
+
+class LemonNet(nn.Module):
+    def __init__(self): 
+        super(LemonNet,self).__init__()
+        self.cnv1 = nn.Conv2d(1, 5, 7)
+        self.cnv2 = nn.Conv2d(5, 10, 7)
+        self.ful1 = nn.Linear(14440, 100)
+        self.ful2 = nn.Linear(100, 50)
+        self.ful3 = nn.Linear(50, 10)
+        
+    def forward(self,x):
+        x = F.elu(self.cnv1(x))
+        x = F.elu(self.cnv2(x))
+        x = x.view(-1,14440)
+        x = F.elu(self.ful1(x))
+        x = F.elu(self.ful2(x))
+        x = self.ful3(x)       
+        return x

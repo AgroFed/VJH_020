@@ -6,17 +6,19 @@ import torch
 import torch.nn.functional as F
 from torch import optim
 
+from functools import reduce
+
 def client_update(_model, data_loader, learning_rate, decay, epochs, device):
     model = copy.deepcopy(_model)
     loss = {}
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=decay)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)#, weight_decay=decay)
     model.train()
     for epoch in range(epochs):
         for batch_idx, (data, target) in enumerate(data_loader):
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             output = model(data)
-            _loss = F.nll_loss(output, target)
+            _loss = F.cross_entropy(output, target)
             _loss.backward()
             optimizer.step()
 
@@ -35,7 +37,7 @@ def evaluate(model, test_loader, device, flip_labels = None):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_output["test_loss"] += F.nll_loss(output, target, reduction='sum').item()
+            test_output["test_loss"] += F.cross_entropy(output, target, reduction='sum').item()
             pred = output.argmax(dim=1, keepdim=True)
             if flip_labels is not None and len(flip_labels) > 0:
                 audit_attack(target, pred, flip_labels, test_output["attack"])
@@ -45,6 +47,17 @@ def evaluate(model, test_loader, device, flip_labels = None):
     test_output["accuracy"] = (test_output["correct"] / len(test_loader.dataset)) * 100
 
     return test_output
+
+def add_model(dst_model, src_model):
+    params1 = dst_model.state_dict().copy()
+    params2 = src_model.state_dict().copy()
+    with torch.no_grad():
+        for name1 in params1:
+            if name1 in params2:
+                params1[name1] = params1[name1] + params2[name1]
+    model = copy.deepcopy(dst_model)
+    model.load_state_dict(params1, strict=False)
+    return model
 
 def federated_avg(models: Dict[Any, torch.nn.Module],
                   base_model: torch.nn.Module = None) -> torch.nn.Module:
@@ -58,6 +71,16 @@ def federated_avg(models: Dict[Any, torch.nn.Module],
     else:
         model = copy.deepcopy(list(models.values())[0])
     return model
+
+def scale_model(model, scale):
+    params = model.state_dict().copy()
+    scale = torch.tensor(scale)
+    with torch.no_grad():
+        for name in params:
+            params[name] = params[name].type_as(scale) * scale
+    scaled_model = copy.deepcopy(model)
+    scaled_model.load_state_dict(params, strict=False)
+    return scaled_model
 
 def sub_model(model1, model2):
     params1 = model1.state_dict().copy()
