@@ -53,22 +53,20 @@
 <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
   <header class="mb-auto">
     <div>
-      <h3 class="float-md-start mb-0 text-center" >Agro FED</h3>
-      <p> Please Upload An Image </p>
-
+      <h3 class="float-md-start mb-0 text-center" >AgroFED</h3>
     </div>
     <hr/>
     <div class="row">
       <div class="col-md-12">
-        <form action="http://172.16.26.25:5000/test" method="POST"
+        <form action="http://localhost:5000/" method="POST"
         enctype="multipart/form-data">
     
   <p>
-        <input type="file" name="files[]" id="file" multiple>
-        <input type="submit" name="submit" value="Health Check" >
+        <input type="file" name="files[]" id="myFile" multiple>
+        <!--input type="submit" name="submit" value="Upload" -->
     </p>
   
-  </form>
+          </form><ul></ul>
       </div>
     </div>
   </header>
@@ -86,7 +84,7 @@
 
 
 <script>
-$("#file").change(function(e) {
+$("#myFile").change(function(e) {
 for (var i = 0; i < e.originalEvent.srcElement.files.length; i++) {
     
     var file = e.originalEvent.srcElement.files[i];
@@ -97,9 +95,22 @@ for (var i = 0; i < e.originalEvent.srcElement.files.length; i++) {
          img.src = reader.result;
     }
     reader.readAsDataURL(file);
-    $("#file").after(img);
+    $("#myFile").after(img);
 }
+    testModel()
 });
+    
+const testModel= async () => {
+  const response = await fetch('/api/test', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+  const r = {'Health Index': 2} //await response.json(); //extract JSON from the http response
+  console.log(r)
+  $("ul").append(`<li>${JSON.stringify(r)}</li>`);
+}
 
 </script>
     
